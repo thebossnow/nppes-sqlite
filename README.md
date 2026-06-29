@@ -166,6 +166,13 @@ The loader is streaming, normalizes on the fly, and does batched upserts.
 
 The NPI data only stores raw 10-char codes. Load the official NUCC code set once for human-readable descriptions, grouping, definitions, etc.
 
+**Example taxonomy codes:**
+
+- `1223G0001X` — Dental Providers → Dentist → General Practice
+- `207R00000X` — Allopathic & Osteopathic Physicians → Internal Medicine
+- `363LF0000X` — Physician Assistants & Advanced Practice Nursing Providers → Nurse Practitioner → Family
+- `261QF0400X` — Ambulatory Health Care Facilities → Clinic/Center → Federally Qualified Health Center (FQHC)
+
 ```bash
 # One-time (or after each NUCC update ~twice a year)
 python -m nppes.taxonomy --db /data/nppes/nppes.db --download
@@ -173,6 +180,14 @@ python -m nppes.taxonomy --db /data/nppes/nppes.db --download
 # Or from a local copy
 python -m nppes.taxonomy --db /data/nppes/nppes.db --csv nucc_taxonomy_251.csv
 ```
+
+There's also a convenience wrapper script:
+
+```bash
+./scripts/load_nucc_taxonomy.sh /data/nppes/nppes.db
+```
+
+(Or set the `NPPES_DB` environment variable.)
 
 This creates the `taxonomy_codes` table (883 codes in current version). You can now join:
 
@@ -228,9 +243,14 @@ all_in_county = q.search(state="NY", postal_prefix="100", taxonomy_code="207Q000
 
 # Validate NPI (Luhn + existence)
 ok = q.validate_npi("1992817777")
+
+# Taxonomy reference lookup (after loading taxonomy_codes)
+tax = q.get_taxonomy("1223G0001X")
+full = q.get_by_npi("1234567890")
+full = q.enrich_with_taxonomy_details(full)
 ```
 
-See `nppes/query.py` and examples/.
+See `nppes/query.py` and `examples/`. The taxonomy reference data is documented in its own section above.
 
 ## Freshness
 
@@ -248,6 +268,7 @@ if provider and needs_guaranteed_fresh(provider.last_update_date):
 ```bash
 python -m pytest tests/ -q
 python -m nppes.loader --help
+python -m nppes.taxonomy --help
 ```
 
 ## Data sources
