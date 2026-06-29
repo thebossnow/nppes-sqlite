@@ -1,0 +1,3 @@
+# Core: pure stdlib + sqlite3
+# Optional for nicer progress:
+# tqdm>=4.66
