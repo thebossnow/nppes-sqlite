@@ -19,6 +19,7 @@ dev = ["pytest", "tqdm"]
 
 [project.scripts]
 nppes-ingest = "nppes.loader:main"
+nppes-taxonomy = "nppes.taxonomy:main"
 
 [tool.setuptools.packages.find]
 where = ["."]

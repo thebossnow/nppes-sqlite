@@ -102,3 +102,25 @@ def sample_othername_csv(tmp_path):
     ]
     _write_csv(p, header, rows)
     return p
+
+
+@pytest.fixture
+def sample_taxonomy_csv(tmp_path):
+    """Small realistic slice of NUCC taxonomy CSV for tests."""
+    p = tmp_path / "taxonomy_sample.csv"
+    header = [
+        "Code", "Grouping", "Classification", "Specialization",
+        "Definition", "Notes", "Display Name", "Section"
+    ]
+    rows = [
+        ["1223G0001X", "Dental Providers", "Dentist", "General Practice",
+         "A dentist who provides general dental care.", "", "General Practice Dentist", "Individual"],
+        ["207R00000X", "Allopathic & Osteopathic Physicians", "Internal Medicine", "",
+         "Physicians who diagnose and treat diseases of the internal organs.", "Source: ABMS", "Internal Medicine Physician", "Individual"],
+        ["363LF0000X", "Physician Assistants & Advanced Practice Nursing Providers", "Nurse Practitioner", "Family",
+         "A nurse practitioner who provides family-centered care.", "", "Family Nurse Practitioner", "Individual"],
+        ["261QF0400X", "Ambulatory Health Care Facilities", "Clinic/Center", "Federally Qualified Health Center (FQHC)",
+         "", "", "Federally Qualified Health Center (FQHC)", "Non-Individual"],
+    ]
+    _write_csv(p, header, rows)
+    return p

@@ -167,6 +167,23 @@ CREATE VIEW IF NOT EXISTS active_providers AS
 SELECT * FROM providers
 WHERE (deactivation_date IS NULL OR deactivation_date = '')
   AND (status IS NULL OR status != 'deactivated');
+
+-- NUCC Healthcare Provider Taxonomy Code Set (reference / lookup)
+-- Source: https://taxonomy.nucc.org/  (updated ~2x per year)
+CREATE TABLE IF NOT EXISTS taxonomy_codes (
+    code TEXT PRIMARY KEY,
+    grouping TEXT,
+    classification TEXT,
+    specialization TEXT,
+    definition TEXT,
+    notes TEXT,
+    display_name TEXT,
+    section TEXT  -- 'Individual' or 'Non-Individual' / 'Group'
+);
+
+CREATE INDEX IF NOT EXISTS idx_taxcode_code ON taxonomy_codes(code);
+CREATE INDEX IF NOT EXISTS idx_taxcode_grouping ON taxonomy_codes(grouping);
+CREATE INDEX IF NOT EXISTS idx_taxcode_classification ON taxonomy_codes(classification);
 """
 
 
@@ -196,7 +213,7 @@ def main(argv: Optional[list[str]] = None) -> None:
     print(f"Schema initialized (or already present) at {args.db}")
 
     if args.info:
-        for table in ("providers", "taxonomies", "other_identifiers", "practice_locations", "endpoints", "other_names"):
+        for table in ("providers", "taxonomies", "other_identifiers", "practice_locations", "endpoints", "other_names", "taxonomy_codes"):
             n = conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
             print(f"  {table}: {n:,}")
     conn.close()

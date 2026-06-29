@@ -160,6 +160,29 @@ class NPIQuery:
     def search_by_postal(self, postal_prefix: str, *, state: Optional[str] = None, limit: int = 200) -> List[Dict[str, Any]]:
         return self.search(postal_prefix=postal_prefix, state=state, limit=limit)
 
+    # ------------------------------------------------------------------ taxonomy reference
+    def get_taxonomy(self, code: str) -> Optional[Dict[str, Any]]:
+        """Return full details for a single taxonomy code from the NUCC reference table."""
+        row = self.conn.execute(
+            "SELECT * FROM taxonomy_codes WHERE code = ?", (code,)
+        ).fetchone()
+        return dict(row) if row else None
+
+    def enrich_with_taxonomy_details(self, provider: Dict[str, Any]) -> Dict[str, Any]:
+        """Add 'taxonomy_details' list to a provider dict returned by get_by_npi()."""
+        if "taxonomies" not in provider:
+            return provider
+        details = []
+        for t in provider["taxonomies"]:
+            code = t.get("code")
+            if code:
+                d = self.get_taxonomy(code)
+                if d:
+                    details.append(d)
+        provider = dict(provider)
+        provider["taxonomy_details"] = details
+        return provider
+
     # ------------------------------------------------------------------ validate
     def validate_npi(self, npi: str, *, check_exists: bool = True) -> bool:
         """Return True if the NPI passes Luhn and (optionally) exists in DB."""
@@ -176,7 +199,7 @@ class NPIQuery:
     # ------------------------------------------------------------------ stats
     def stats(self) -> Dict[str, int]:
         out = {}
-        for tbl in ("providers", "taxonomies", "other_identifiers", "practice_locations", "endpoints", "other_names"):
+        for tbl in ("providers", "taxonomies", "other_identifiers", "practice_locations", "endpoints", "other_names", "taxonomy_codes"):
             out[tbl] = self.conn.execute(f"SELECT COUNT(*) FROM {tbl}").fetchone()[0]
         out["active_providers"] = self.conn.execute(
             "SELECT COUNT(*) FROM providers WHERE deactivation_date IS NULL OR deactivation_date = ''"

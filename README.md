@@ -162,6 +162,31 @@ python -m nppes.loader --db data/nppes.db \
 
 The loader is streaming, normalizes on the fly, and does batched upserts.
 
+## Taxonomy Code Reference (highly recommended)
+
+The NPI data only stores raw 10-char codes. Load the official NUCC code set once for human-readable descriptions, grouping, definitions, etc.
+
+```bash
+# One-time (or after each NUCC update ~twice a year)
+python -m nppes.taxonomy --db /data/nppes/nppes.db --download
+
+# Or from a local copy
+python -m nppes.taxonomy --db /data/nppes/nppes.db --csv nucc_taxonomy_251.csv
+```
+
+This creates the `taxonomy_codes` table (883 codes in current version). You can now join:
+
+```python
+from nppes.query import NPIQuery
+q = NPIQuery(db)
+rec = q.get_by_npi("1234567895")
+rec = q.enrich_with_taxonomy_details(rec)
+print(rec["taxonomy_details"][0]["display_name"])
+```
+
+Direct CSV: https://nucc.org/images/stories/CSV/nucc_taxonomy_251.csv  
+Interactive browser: https://taxonomy.nucc.org/
+
 ## Weekly automation (cron)
 
 ```bash
